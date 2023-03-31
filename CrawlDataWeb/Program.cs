@@ -2,6 +2,7 @@
 using System.Data;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
+using HtmlAgilityPack;
 using Newtonsoft.Json;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -11,10 +12,22 @@ namespace SeleniumTest
 {
     public class Program
     {
-
         static void Main(string[] args)
         {
+            var program = new Program();
+            var listUrl = program.GetUrlFromExcel();
+            if (listUrl.Count > 0)
+            {
+                foreach(var url in listUrl)
+                {
+                    program.CrawlData(url);
+                }
 
+            }
+        }
+
+        public void CrawlData(string? url)
+        {
             ChromeOptions options = new ChromeOptions();
             //options.AddArgument("--headless");
             //options.AddArgument("--disable-gpu");
@@ -23,48 +36,48 @@ namespace SeleniumTest
             //options.AddArgument("--disable-infobars");
             IWebDriver driver = new ChromeDriver(options);
             driver.Manage().Window.Maximize();
-            driver.Navigate().GoToUrl("https://ramseyoutdoor.com/womens/");
-            var checkPage = true;
-            var page = 0; 
-            var program = new Program();
-            while (page<3 )
+            driver.Navigate().GoToUrl(url);
+            bool checkPage = true;
+            var page = 0;
+            while (page < 3)
             {
-                try {
+                try
+                {
                     string currentUrl = driver.Url;
                     page++;
 
-                        Thread.Sleep(4000);
-                        if(page == 1)
+                    Thread.Sleep(4000);
+                    if (page == 1)
+                    {
+                        var button1 = driver.FindElement(By.ClassName("PopupCloseControl__PopupCloseControlContainer-sc-1ge5cvc-0"));
+                        if (button1 != null) button1.Click();
+                        Thread.Sleep(1000);
+                    }
+                    var listProduct = driver.FindElements(By.ClassName("product"));
+                    var listproduct = new List<ProductInfo>();
+                    if (listProduct.Count > 0)
+                    {
+                        for (var i = 0; i < listProduct.Count; i++)
                         {
-                            var button1 = driver.FindElement(By.ClassName("PopupCloseControl__PopupCloseControlContainer-sc-1ge5cvc-0"));
-                            if (button1 != null) button1.Click();
-                            Thread.Sleep(1000);
+                            // Get product info
+                            var productInfoDetail = driver.FindElement(By.CssSelector("#product-listing-container > form > ul > li:nth-child(" + (i + 1) + ") > article > div > figure > a")).GetAttribute("data-analytics-sent");
+                            var productInfo = new ProductInfo();
+                            productInfo = JsonConvert.DeserializeObject<ProductInfo>(productInfoDetail);
+                            productInfo!.imageSrc = driver.FindElement(By.CssSelector("#product-listing-container > form > ul > li:nth-child(" + (i + 1) + ") > article > div > figure > a > div > span > img")).GetAttribute("src");
+                            productInfo.pathDetail = driver.FindElement(By.CssSelector("#product-listing-container > form > ul > li:nth-child(" + (i + 1) + ") > article > div > figure > a")).GetAttribute("href");
+                            listproduct.Add(productInfo);
                         }
-                        var listProduct = driver.FindElements(By.ClassName("product"));
-                        var listproduct = new List<ProductInfo>();
-                        if (listProduct.Count > 0)
-                        {
-                            for (var i = 0; i < listProduct.Count; i++)
-                            {
-                                 // Get product info
-                                var productInfoDetail = driver.FindElement(By.CssSelector("#product-listing-container > form > ul > li:nth-child(" + (i + 1) + ") > article > div > figure > a")).GetAttribute("data-analytics-sent");
-                                var productInfo = new ProductInfo();
-                                productInfo = JsonConvert.DeserializeObject<ProductInfo>(productInfoDetail);
-                                productInfo!.imageSrc = driver.FindElement(By.CssSelector("#product-listing-container > form > ul > li:nth-child(" + (i + 1) + ") > article > div > figure > a > div > span > img")).GetAttribute("src");
-                                productInfo.pathDetail = driver.FindElement(By.CssSelector("#product-listing-container > form > ul > li:nth-child(" + (i + 1) + ") > article > div > figure > a")).GetAttribute("href");
-                                listproduct.Add(productInfo);
-                            }
-                        };
-                        for (var j = 0; j < listproduct.Count; j++)
-                        {
+                    };
+                    for (var j = 0; j < listproduct.Count; j++)
+                    {
                         // Get more info detail product
-                            program.GetInfoDetailProduct(driver, listproduct[j]);
-                        }
-                        Thread.Sleep(2000);
+                        GetInfoDetailProduct(driver, listproduct[j]);
+                    }
+                    Thread.Sleep(2000);
 
                     driver.Navigate().GoToUrl(currentUrl);
                     Thread.Sleep(2000);
-                    var buttonNext = program.FindElement(driver, "#product-listing-container > div.pagination > ul > li.pagination-item.pagination-item--next");
+                    var buttonNext = FindElement(driver, "#product-listing-container > div.pagination > ul > li.pagination-item.pagination-item--next");
                     if (buttonNext != null)
                     {
                         buttonNext.Click(); // next page
@@ -73,7 +86,7 @@ namespace SeleniumTest
                     {
                         checkPage = false; // If page is last page => check =  false (Stop Crawl)
                     };
-                } 
+                }
                 catch (Exception ex)
                 {
                     checkPage = false; // If page is last page => check =  false (Stop Crawl)
@@ -85,7 +98,7 @@ namespace SeleniumTest
         public List<string?> GetUrlFromExcel()
         {
             var listUrl = new List<string>();
-            string filePath = "example.xlsx";
+            string filePath = "E:/CrawlDataWeb/CrawlDataWeb/CrawlDataWeb/FolderExcel/example.xlsx";
             DataTable dataTable = new DataTable();
             using (SpreadsheetDocument spreadsheetDocument = SpreadsheetDocument.Open(filePath, false))
             {
@@ -98,27 +111,16 @@ namespace SeleniumTest
                 {
                     foreach (Row row in sheetData.Elements<Row>())
                     {
-                        DataRow dataRow = dataTable.NewRow();
-
                         foreach (Cell cell in row.Elements<Cell>())
                         {
-                            string cellValue = GetCellValue(cell, workbookPart);
-                            dataRow[cell.CellReference.ToString()] = cellValue;
+                            if (cell.CellReference == "B2")
+                            {
+                                string linkString = GetCellValue(cell, workbookPart);
+                                listUrl.Add(linkString);
+                            }
                         }
-
-                        dataTable.Rows.Add(dataRow);
                     }
                 }
-            }
-
-            foreach (DataRow dataRow in dataTable.Rows)
-            {
-                foreach (DataColumn dataColumn in dataTable.Columns)
-                {
-                    Console.Write(dataRow[dataColumn] + "\t");
-                }
-
-                Console.WriteLine();
             }
             return listUrl;
         }
@@ -142,9 +144,16 @@ namespace SeleniumTest
             return cellValue;
         }
 
-    public ProductInfo GetInfoDetailProduct(IWebDriver driver, ProductInfo? productDetail)
+        public ProductInfo GetInfoDetailProduct(IWebDriver driver, ProductInfo? productDetail)
         {
             driver.Navigate().GoToUrl(productDetail.pathDetail);
+            //var link = productDetail.pathDetail;
+            //string html = driver.PageSource;
+
+            //HtmlWeb doc = new HtmlWeb();
+            //var htmlDoc = doc.Load(link);
+            //HtmlNode someNode = htmlDoc.DocumentNode.SelectSingleNode("//h1[@class='productView-title']");
+           // var text = someNode;
             var descriptionHeader = FindElement(driver, "body > div.body > div.container > div > div:nth-child(1) > div > div:nth-child(3) > section:nth-child(1) > div > p:nth-child(1) > span");
             productDetail.descriptionHeader = descriptionHeader != null ? descriptionHeader.Text : null;
             productDetail.descriptionDetail = new List<string>();
@@ -179,8 +188,6 @@ namespace SeleniumTest
             return productDetail;
         }
 
-            
-
         public IWebElement? FindElement(IWebDriver driver, string? cssSelecter)
         {
             IWebElement elemement = null;
@@ -194,7 +201,6 @@ namespace SeleniumTest
                 Console.WriteLine(ex.Message);
                 return elemement;
             }
-
         }
 
         public class ProductInfo
@@ -210,7 +216,5 @@ namespace SeleniumTest
             public string? descriptionHeader { get; set; }
             public List<string>? descriptionDetail { get; set; }
         }
-
-
     }
 }

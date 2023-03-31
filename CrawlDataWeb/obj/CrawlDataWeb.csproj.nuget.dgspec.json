@@ -48,6 +48,10 @@
               "target": "Package",
               "version": "[2.19.0, )"
             },
+            "HtmlAgilityPack": {
+              "target": "Package",
+              "version": "[1.11.46, )"
+            },
             "Microsoft.AspNetCore.Mvc.Abstractions": {
               "target": "Package",
               "version": "[2.2.0, )"

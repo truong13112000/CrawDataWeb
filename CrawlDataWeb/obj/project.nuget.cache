@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "yWJbCbQUl0EIumh4RRXC7LlqqjQNTUpQE96r6VKbWTRl2GhK0cC3Y2oiL1etMRGs/R9ZF+FriR+mIj7okYCHJQ==",
+  "dgSpecHash": "DPEC8nL/xbhxCdehypnRKxSDb3/uGXEKsTfOLQ269VNhsSNDJSpEjPzuuNYBLH0US95Is7FXVUzsGpizBhv+/g==",
   "success": true,
   "projectFilePath": "E:\\CrawlDataWeb\\CrawlDataWeb\\CrawlDataWeb\\CrawlDataWeb.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\TruongNX3\\.nuget\\packages\\documentformat.openxml\\2.19.0\\documentformat.openxml.2.19.0.nupkg.sha512",
+    "C:\\Users\\TruongNX3\\.nuget\\packages\\htmlagilitypack\\1.11.46\\htmlagilitypack.1.11.46.nupkg.sha512",
     "C:\\Users\\TruongNX3\\.nuget\\packages\\microsoft.aspnetcore.http.abstractions\\2.2.0\\microsoft.aspnetcore.http.abstractions.2.2.0.nupkg.sha512",
     "C:\\Users\\TruongNX3\\.nuget\\packages\\microsoft.aspnetcore.http.features\\2.2.0\\microsoft.aspnetcore.http.features.2.2.0.nupkg.sha512",
     "C:\\Users\\TruongNX3\\.nuget\\packages\\microsoft.aspnetcore.mvc.abstractions\\2.2.0\\microsoft.aspnetcore.mvc.abstractions.2.2.0.nupkg.sha512",
